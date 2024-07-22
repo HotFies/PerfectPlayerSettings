@@ -1,0 +1,10 @@
+hotfies\perfectplayersettings\utils\MessageManager.class
+hotfies\perfectplayersettings\listeners\PlayerJoinListener.class
+hotfies\perfectplayersettings\commands\ChatCommand.class
+hotfies\perfectplayersettings\PerfectPlayerSettings.class
+hotfies\perfectplayersettings\commands\FlyCommand.class
+hotfies\perfectplayersettings\listeners\ChatListener.class
+hotfies\perfectplayersettings\utils\ConfigManager.class
+hotfies\perfectplayersettings\commands\LangCommand.class
+hotfies\perfectplayersettings\utils\DatabaseManager.class
+hotfies\perfectplayersettings\commands\VisibilityCommand.class

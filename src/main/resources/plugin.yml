@@ -1,0 +1,20 @@
+name: PerfectPlayerSettings
+version: '${project.version}'
+main: hotfies.perfectplayersettings.PerfectPlayerSettings
+api-version: '1.20'
+load: STARTUP
+authors: [Dem1ch, Aneras]
+description: Settings for players
+commands:
+  psfly:
+    description: Toggle fly mode
+    usage: /psfly
+  psvisibility:
+    description: Toggle player visibility
+    usage: /psvisibility
+  pschat:
+    description: Toggle chat visibility
+    usage: /pschat
+  pslang:
+    description: Change language
+    usage: /pslang <language>

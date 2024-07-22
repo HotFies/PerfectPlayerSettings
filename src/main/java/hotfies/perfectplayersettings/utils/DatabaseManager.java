@@ -4,6 +4,8 @@ import hotfies.perfectplayersettings.PerfectPlayerSettings;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -52,7 +54,8 @@ public class DatabaseManager {
                     "fly BOOLEAN DEFAULT FALSE," +
                     "visibility BOOLEAN DEFAULT TRUE," +
                     "chat BOOLEAN DEFAULT TRUE," +
-                    "lang VARCHAR(10) DEFAULT 'Ru_ru'" +
+                    "lang VARCHAR(10) DEFAULT 'Ru_ru'," +
+                    "tag VARCHAR(20) DEFAULT 'Default'" +
                     ")";
             statement.executeUpdate(createTableSQL);
         }
@@ -77,5 +80,30 @@ public class DatabaseManager {
             e.printStackTrace();
         }
         return connection;
+    }
+
+    public String getTag(String playerUUID) {
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT tag FROM player_settings WHERE player_uuid = ?")) {
+            statement.setString(1, playerUUID);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString("tag");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Default";
+    }
+
+    public void setTag(String playerUUID, String tag) {
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement("UPDATE player_settings SET tag = ? WHERE player_uuid = ?")) {
+            statement.setString(1, tag);
+            statement.setString(2, playerUUID);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

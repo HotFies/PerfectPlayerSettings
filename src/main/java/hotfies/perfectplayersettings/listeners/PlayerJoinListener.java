@@ -54,6 +54,7 @@ public class PlayerJoinListener implements Listener {
                 }
 
                 messageManager.loadMessages(player, lang);
+                // Загружаем тег игрока
                 // Дополнительные действия, если необходимо
 
             } else {

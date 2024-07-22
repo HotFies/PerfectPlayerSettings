@@ -27,6 +27,10 @@ public class FlyCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!plugin.getConfig().getBoolean("commands.psfly", true)) {
+            return true;
+        }
+
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be used by players.");
             return true;

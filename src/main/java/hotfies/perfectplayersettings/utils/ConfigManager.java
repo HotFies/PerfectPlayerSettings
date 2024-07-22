@@ -5,7 +5,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,12 +41,12 @@ public class ConfigManager {
         tagConfig = YamlConfiguration.loadConfiguration(tagFile);
         tags.clear();
         for (String key : tagConfig.getConfigurationSection("Tags").getKeys(false)) {
-            tags.put(key, tagConfig.getString("Tags." + key));
+            tags.put(key.toLowerCase(), tagConfig.getString("Tags." + key));
         }
     }
 
     public String getTag(String key) {
-        return tags.getOrDefault(key, tagConfig.getString("Default"));
+        return tags.getOrDefault(key.toLowerCase(), null);
     }
 
     public Map<String, String> getTags() {

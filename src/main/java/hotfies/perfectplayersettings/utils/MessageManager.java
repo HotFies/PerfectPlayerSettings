@@ -17,6 +17,15 @@ public class MessageManager {
 
     public MessageManager(PerfectPlayerSettings plugin) {
         this.plugin = plugin;
+        loadMessages("Ru_ru");
+    }
+
+    public void loadMessages(String lang) {
+        File langFile = new File(plugin.getDataFolder(), "lang/" + lang + ".yml");
+        if (!langFile.exists()) {
+            langFile = new File(plugin.getDataFolder(), "lang/Ru_ru.yml");
+        }
+        playerMessages.put(null, YamlConfiguration.loadConfiguration(langFile));
     }
 
     public void loadMessages(Player player, String lang) {
@@ -27,9 +36,20 @@ public class MessageManager {
         playerMessages.put(player, YamlConfiguration.loadConfiguration(langFile));
     }
 
+    public String getMessage(String key) {
+        return ChatColor.translateAlternateColorCodes('&', playerMessages.getOrDefault(null, YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/Ru_ru.yml"))).getString(key, ""));
+    }
+
     public String getMessage(Player player, String key) {
-        FileConfiguration messages = playerMessages.getOrDefault(player, YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/Ru_ru.yml")));
-        return ChatColor.translateAlternateColorCodes('&', messages.getString(key));
+        return ChatColor.translateAlternateColorCodes('&', playerMessages.getOrDefault(player, YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/Ru_ru.yml"))).getString(key, ""));
+    }
+
+    public String getFormattedMessage(String key, String... placeholders) {
+        String message = getMessage(key);
+        for (int i = 0; i < placeholders.length; i += 2) {
+            message = message.replace(placeholders[i], placeholders[i + 1]);
+        }
+        return message;
     }
 
     public String getFormattedMessage(Player player, String key, String... placeholders) {

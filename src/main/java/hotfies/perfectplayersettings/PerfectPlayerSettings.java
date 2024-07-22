@@ -3,17 +3,18 @@ package hotfies.perfectplayersettings;
 import hotfies.perfectplayersettings.commands.*;
 import hotfies.perfectplayersettings.listeners.ChatListener;
 import hotfies.perfectplayersettings.listeners.PlayerJoinListener;
+import hotfies.perfectplayersettings.placeholder.PlaceholderIntegration;
 import hotfies.perfectplayersettings.utils.DatabaseManager;
-import hotfies.perfectplayersettings.utils.ConfigManager;
 import hotfies.perfectplayersettings.utils.MessageManager;
+import hotfies.perfectplayersettings.utils.ConfigManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PerfectPlayerSettings extends JavaPlugin {
 
     private DatabaseManager databaseManager;
-    private ConfigManager configManager;
     private MessageManager messageManager;
+    private ConfigManager configManager;
 
     @Override
     public void onEnable() {
@@ -36,6 +37,10 @@ public final class PerfectPlayerSettings extends JavaPlugin {
         registerCommands();
         registerListeners();
 
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new PlaceholderIntegration(this).register();
+        }
+
         Bukkit.getConsoleSender().sendMessage("[PerfectPlayerSettings] Плагин успешно загружен.");
     }
 
@@ -50,6 +55,7 @@ public final class PerfectPlayerSettings extends JavaPlugin {
         getCommand("psvisibility").setExecutor(new VisibilityCommand(this));
         getCommand("pschat").setExecutor(new ChatCommand(this));
         getCommand("pslang").setExecutor(new LangCommand(this));
+        getCommand("pstag").setExecutor(new TagCommand(this));
     }
 
     private void registerListeners() {
@@ -61,11 +67,11 @@ public final class PerfectPlayerSettings extends JavaPlugin {
         return databaseManager;
     }
 
-    public ConfigManager getConfigManager() {
-        return configManager;
-    }
-
     public MessageManager getMessageManager() {
         return messageManager;
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
     }
 }

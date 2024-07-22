@@ -40,6 +40,7 @@ public class PlayerJoinListener implements Listener {
                 boolean visibility = resultSet.getBoolean("visibility");
                 boolean chat = resultSet.getBoolean("chat");
                 String lang = resultSet.getString("lang");
+                String tag = resultSet.getString("tag");
 
                 player.setAllowFlight(fly);
                 if (!visibility) {
@@ -53,9 +54,11 @@ public class PlayerJoinListener implements Listener {
                 }
 
                 messageManager.loadMessages(player, lang);
+                // Дополнительные действия, если необходимо
+
             } else {
                 try (PreparedStatement insertStatement = connection.prepareStatement(
-                        "INSERT INTO player_settings (player_uuid, fly, visibility, chat, lang) VALUES (?, false, true, true, 'Ru_ru')")) {
+                        "INSERT INTO player_settings (player_uuid, fly, visibility, chat, lang, tag) VALUES (?, false, true, true, 'Ru_ru', 'Default')")) {
                     insertStatement.setString(1, player.getUniqueId().toString());
                     insertStatement.executeUpdate();
                 }

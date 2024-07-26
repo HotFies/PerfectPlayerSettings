@@ -38,7 +38,6 @@ public class LangCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            sender.sendMessage("Please specify a language.");
             return true;
         }
 

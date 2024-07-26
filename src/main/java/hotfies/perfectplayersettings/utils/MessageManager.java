@@ -44,14 +44,6 @@ public class MessageManager {
         return ChatColor.translateAlternateColorCodes('&', playerMessages.getOrDefault(player, YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/Ru_ru.yml"))).getString(key, ""));
     }
 
-    public String getFormattedMessage(String key, String... placeholders) {
-        String message = getMessage(key);
-        for (int i = 0; i < placeholders.length; i += 2) {
-            message = message.replace(placeholders[i], placeholders[i + 1]);
-        }
-        return message;
-    }
-
     public String getFormattedMessage(Player player, String key, String... placeholders) {
         String message = getMessage(player, key);
         for (int i = 0; i < placeholders.length; i += 2) {

@@ -10,3 +10,5 @@ commands:
   psfly: true
   psvisibility: true
   pslang: true
+  psnick: true
+  pscolornick: true

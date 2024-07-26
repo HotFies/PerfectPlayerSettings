@@ -51,22 +51,61 @@ public class PlaceholderIntegration extends PlaceholderExpansion {
             return "";
         }
 
-        if (identifier.equals("tag")) {
-            try (Connection connection = databaseManager.getConnection();
-                 PreparedStatement statement = connection.prepareStatement("SELECT tag FROM player_settings WHERE player_uuid = ?")) {
-                statement.setString(1, player.getUniqueId().toString());
-                ResultSet resultSet = statement.executeQuery();
-
-                if (resultSet.next()) {
-                    String tagKey = resultSet.getString("tag");
-                    return plugin.getConfigManager().getTag(tagKey);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            return plugin.getConfigManager().getDefaultTag();
+        switch (identifier) {
+            case "tag":
+                return getTag(player);
+            case "nick":
+                return getFakeNickname(player);
+            case "colornick":
+                return getColorNick(player);
+            default:
+                return null;
         }
+    }
 
-        return null;
+    private String getTag(Player player) {
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT tag FROM player_settings WHERE player_uuid = ?")) {
+            statement.setString(1, player.getUniqueId().toString());
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String tagKey = resultSet.getString("tag");
+                return plugin.getConfigManager().getTag(tagKey);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return plugin.getConfigManager().getDefaultTag();
+    }
+
+    private String getFakeNickname(Player player) {
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT fake_nickname FROM player_settings WHERE player_uuid = ?")) {
+            statement.setString(1, player.getUniqueId().toString());
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getString("fake_nickname");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return player.getName();
+    }
+
+    private String getColorNick(Player player) {
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT color_nick FROM player_settings WHERE player_uuid = ?")) {
+            statement.setString(1, player.getUniqueId().toString());
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getString("color_nick");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "&7";
     }
 }

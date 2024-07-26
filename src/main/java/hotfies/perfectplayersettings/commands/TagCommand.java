@@ -36,7 +36,6 @@ public class TagCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            sender.sendMessage("Please specify a tag.");
             return true;
         }
 

@@ -10,11 +10,7 @@ import hotfies.perfectplayersettings.utils.ConfigManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.Arrays;
-import java.util.List;
 
 public final class PerfectPlayerSettings extends JavaPlugin {
 
@@ -62,6 +58,8 @@ public final class PerfectPlayerSettings extends JavaPlugin {
         registerCommand("pschat", new ChatCommand(this));
         registerCommand("pslang", new LangCommand(this));
         registerCommand("pstag", new TagCommand(this));
+        registerCommand("psnick", new NickCommand(this));
+        registerCommand("pscolornick", new ColorNickCommand(this));
     }
 
     private void registerCommand(String name, CommandExecutor executor) {

@@ -1,3 +1,4 @@
+hotfies\perfectplayersettings\commands\ColorNickCommand.class
 hotfies\perfectplayersettings\utils\MessageManager.class
 hotfies\perfectplayersettings\listeners\PlayerJoinListener.class
 hotfies\perfectplayersettings\commands\ChatCommand.class
@@ -9,4 +10,5 @@ hotfies\perfectplayersettings\commands\LangCommand.class
 hotfies\perfectplayersettings\utils\DatabaseManager.class
 hotfies\perfectplayersettings\commands\VisibilityCommand.class
 hotfies\perfectplayersettings\placeholder\PlaceholderIntegration.class
+hotfies\perfectplayersettings\commands\NickCommand.class
 hotfies\perfectplayersettings\commands\TagCommand.class

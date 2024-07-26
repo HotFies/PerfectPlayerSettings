@@ -21,3 +21,9 @@ commands:
   pstag:
     description: Set player tag
     usage: /pstag <tag>
+  psnick:
+    description: Set player random nick
+    usage: /psnick
+  pscolornick:
+    description: Set player color for nick
+    usage: /pscolornick <color>

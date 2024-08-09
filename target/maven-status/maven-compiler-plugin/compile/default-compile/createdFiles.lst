@@ -1,4 +1,5 @@
 hotfies\perfectplayersettings\commands\ColorNickCommand.class
+hotfies\perfectplayersettings\commands\PartyCommand.class
 hotfies\perfectplayersettings\utils\MessageManager.class
 hotfies\perfectplayersettings\listeners\PlayerJoinListener.class
 hotfies\perfectplayersettings\commands\ChatCommand.class

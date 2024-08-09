@@ -6,24 +6,27 @@ load: STARTUP
 authors: [Dem1ch, Aneras]
 description: Settings for players
 commands:
-  psfly:
+  pffly:
     description: Toggle fly mode
-    usage: /psfly
-  psvisibility:
+    usage: /pffly
+  pfvisibility:
     description: Toggle player visibility
-    usage: /psvisibility
-  pschat:
+    usage: /pfvisibility
+  pfchat:
     description: Toggle chat visibility
-    usage: /pschat
-  pslang:
+    usage: /pfchat
+  pflang:
     description: Change language
-    usage: /pslang <language>
-  pstag:
+    usage: /pflang <language>
+  pftag:
     description: Set player tag
-    usage: /pstag <tag>
-  psnick:
+    usage: /pftag <tag>
+  pfnick:
     description: Set player random nick
-    usage: /psnick
-  pscolornick:
+    usage: /pfnick
+  pfcolornick:
     description: Set player color for nick
-    usage: /pscolornick <color>
+    usage: /pfcolornick <color>
+  pfparty:
+    description: Toggle party invites
+    usage: /pfparty

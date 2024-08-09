@@ -5,10 +5,11 @@ database:
   user: root
   password: password
 commands:
-  pschat: true
-  pstag: true
-  psfly: true
-  psvisibility: true
-  pslang: true
-  psnick: true
-  pscolornick: true
+  pfchat: true
+  pftag: true
+  pffly: true
+  pfvisibility: true
+  pflang: true
+  pfnick: true
+  pfcolornick: true
+  pfparty: true

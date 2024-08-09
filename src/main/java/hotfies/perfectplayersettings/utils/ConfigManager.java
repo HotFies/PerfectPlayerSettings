@@ -19,18 +19,24 @@ public class ConfigManager {
 
     public ConfigManager(PerfectPlayerSettings plugin) {
         this.plugin = plugin;
-        createLangFile();
+        createLangFiles();
         createTagFile();
         createColorFile();
         loadTagConfig();
         loadColorConfig();
     }
 
-    private void createLangFile() {
-        File langFile = new File(plugin.getDataFolder(), "lang/Ru_ru.yml");
+    private void createLangFiles() {
+        createLangFile("Ru_ru.yml");
+        createLangFile("En_en.yml");
+        // здесь другие языковые файлы
+    }
+
+    private void createLangFile(String fileName) {
+        File langFile = new File(plugin.getDataFolder(), "lang/" + fileName);
         if (!langFile.exists()) {
             langFile.getParentFile().mkdirs();
-            plugin.saveResource("lang/Ru_ru.yml", false);
+            plugin.saveResource("lang/" + fileName, false);
         }
     }
 

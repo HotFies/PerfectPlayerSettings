@@ -67,8 +67,6 @@ public class PlayerJoinListener implements Listener {
                 }
 
                 plugin.getMessageManager().loadMessages(player, lang);
-                // Загружаем тег игрока
-                // Дополнительные действия, если необходимо
 
             } else {
                 try (PreparedStatement insertNewPlayerStatement = connection.prepareStatement(

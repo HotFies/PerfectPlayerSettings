@@ -3,6 +3,7 @@ package hotfies.perfectplayersettings.commands;
 import hotfies.perfectplayersettings.PerfectPlayerSettings;
 import hotfies.perfectplayersettings.utils.DatabaseManager;
 import hotfies.perfectplayersettings.utils.MessageManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -24,7 +25,7 @@ public class ColorNickCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!plugin.getConfig().getBoolean("commands.pscolornick", true)) {
+        if (!plugin.getConfig().getBoolean("commands.pfcolornick", true)) {
             return true;
         }
 
@@ -34,13 +35,13 @@ public class ColorNickCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        if (!player.hasPermission("perfectps.colornick")) {
-            player.sendMessage(messageManager.getFormattedMessage(player, "Permissions", "%ps_prefix%", messageManager.getMessage(player, "Prefix")));
+        if (!player.hasPermission("perfectpf.colornick")) {
+            player.sendMessage(messageManager.getFormattedMessage(player, "Permissions", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
             return true;
         }
 
         if (args.length != 1) {
-            player.sendMessage(messageManager.getFormattedMessage(player, "InvalidColorFormat", "%ps_prefix%", messageManager.getMessage(player, "Prefix")));
+            player.sendMessage(messageManager.getFormattedMessage(player, "InvalidColorFormat", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
             return true;
         }
 
@@ -48,12 +49,19 @@ public class ColorNickCommand implements CommandExecutor {
         List<String> allowedColors = plugin.getConfigManager().getColorNickList();
 
         if (!allowedColors.contains(color)) {
-            player.sendMessage(messageManager.getFormattedMessage(player, "ColorNotExist", "%ps_prefix%", messageManager.getMessage(player, "Prefix")));
+            player.sendMessage(messageManager.getFormattedMessage(player, "ColorNotExist", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
             return true;
         }
 
-        databaseManager.setColorNick(player.getUniqueId().toString(), color);
-        player.sendMessage(messageManager.getFormattedMessage(player, "ColorNickChanged", "%ps_prefix%", messageManager.getMessage(player, "Prefix"), "%ps_color%", color));
+        // Асинхронное выполнение
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            databaseManager.setColorNick(player.getUniqueId().toString(), color);
+
+            // Синхронное выполнение отправки сообщения
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                player.sendMessage(messageManager.getFormattedMessage(player, "ColorNickChanged", "%pf_prefix%", messageManager.getMessage(player, "Prefix"), "%pf_color%", color));
+            });
+        });
 
         return true;
     }

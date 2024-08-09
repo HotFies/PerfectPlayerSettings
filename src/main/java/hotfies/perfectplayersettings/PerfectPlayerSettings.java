@@ -53,13 +53,14 @@ public final class PerfectPlayerSettings extends JavaPlugin {
     }
 
     private void registerCommands() {
-        registerCommand("psfly", new FlyCommand(this));
-        registerCommand("psvisibility", new VisibilityCommand(this));
-        registerCommand("pschat", new ChatCommand(this));
-        registerCommand("pslang", new LangCommand(this));
-        registerCommand("pstag", new TagCommand(this));
-        registerCommand("psnick", new NickCommand(this));
-        registerCommand("pscolornick", new ColorNickCommand(this));
+        registerCommand("pffly", new FlyCommand(this));
+        registerCommand("pfvisibility", new VisibilityCommand(this));
+        registerCommand("pfchat", new ChatCommand(this));
+        registerCommand("pflang", new LangCommand(this));
+        registerCommand("pftag", new TagCommand(this));
+        registerCommand("pfnick", new NickCommand(this));
+        registerCommand("pfcolornick", new ColorNickCommand(this));
+        registerCommand("pfparty", new PartyCommand(this));
     }
 
     private void registerCommand(String name, CommandExecutor executor) {

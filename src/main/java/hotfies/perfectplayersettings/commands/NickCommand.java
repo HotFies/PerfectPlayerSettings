@@ -3,6 +3,7 @@ package hotfies.perfectplayersettings.commands;
 import hotfies.perfectplayersettings.PerfectPlayerSettings;
 import hotfies.perfectplayersettings.utils.DatabaseManager;
 import hotfies.perfectplayersettings.utils.MessageManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,7 +30,7 @@ public class NickCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!plugin.getConfig().getBoolean("commands.psnick", true)) {
+        if (!plugin.getConfig().getBoolean("commands.pfnick", true)) {
             return true;
         }
 
@@ -39,44 +40,56 @@ public class NickCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        if (!player.hasPermission("perfectps.nick")) {
-            player.sendMessage(messageManager.getFormattedMessage(player, "Permissions", "%ps_prefix%", messageManager.getMessage(player, "Prefix")));
+        if (!player.hasPermission("perfectpf.nick")) {
+            player.sendMessage(messageManager.getFormattedMessage(player, "Permissions", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
             return true;
         }
 
         String uuid = player.getUniqueId().toString();
         String realNickname = player.getName();
-        String fakeNickname = generateRandomNickname();
 
-        try (Connection connection = databaseManager.getConnection();
-             PreparedStatement checkStmt = connection.prepareStatement("SELECT fake_nickname, real_nickname FROM player_settings WHERE player_uuid = ?");
-             PreparedStatement updateStmt = connection.prepareStatement("UPDATE player_settings SET fake_nickname = ?, real_nickname = ? WHERE player_uuid = ?")) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            String fakeNickname = generateRandomNickname();
 
-            checkStmt.setString(1, uuid);
-            ResultSet rs = checkStmt.executeQuery();
-            if (rs.next()) {
-                String currentFakeNickname = rs.getString("fake_nickname");
-                String currentRealNickname = rs.getString("real_nickname");
+            try (Connection connection = databaseManager.getConnection();
+                 PreparedStatement checkStmt = connection.prepareStatement("SELECT fake_nickname, real_nickname FROM player_settings WHERE player_uuid = ?");
+                 PreparedStatement updateStmt = connection.prepareStatement("UPDATE player_settings SET fake_nickname = ?, real_nickname = ? WHERE player_uuid = ?")) {
 
-                if (!currentFakeNickname.equals(currentRealNickname)) {
-                    fakeNickname = currentRealNickname;
-                    player.sendMessage(messageManager.getFormattedMessage(player, "NicknameReset", "%ps_prefix%", messageManager.getMessage(player, "Prefix"), "%ps_nickname%", fakeNickname));
+                checkStmt.setString(1, uuid);
+                ResultSet rs = checkStmt.executeQuery();
+                if (rs.next()) {
+                    String currentFakeNickname = rs.getString("fake_nickname");
+                    String currentRealNickname = rs.getString("real_nickname");
+
+                    if (!currentFakeNickname.equals(currentRealNickname)) {
+                        fakeNickname = currentRealNickname;
+                        String finalFakeNickname = fakeNickname;
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            player.sendMessage(messageManager.getFormattedMessage(player, "NicknameReset", "%pf_prefix%", messageManager.getMessage(player, "Prefix"), "%pf_nickname%", finalFakeNickname));
+                        });
+                    } else {
+                        String finalFakeNickname = fakeNickname;
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            player.sendMessage(messageManager.getFormattedMessage(player, "NicknameChanged", "%pf_prefix%", messageManager.getMessage(player, "Prefix"), "%pf_nickname%", finalFakeNickname));
+                        });
+                    }
                 } else {
-                    player.sendMessage(messageManager.getFormattedMessage(player, "NicknameChanged", "%ps_prefix%", messageManager.getMessage(player, "Prefix"), "%ps_nickname%", fakeNickname));
+                    fakeNickname = realNickname;
+                    String finalFakeNickname = fakeNickname;
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        player.sendMessage(messageManager.getFormattedMessage(player, "NicknameReset", "%pf_prefix%", messageManager.getMessage(player, "Prefix"), "%pf_nickname%", finalFakeNickname));
+                    });
                 }
-            } else {
-                fakeNickname = realNickname;
-                player.sendMessage(messageManager.getFormattedMessage(player, "NicknameReset", "%ps_prefix%", messageManager.getMessage(player, "Prefix"), "%ps_nickname%", fakeNickname));
+
+                updateStmt.setString(1, fakeNickname);
+                updateStmt.setString(2, realNickname);
+                updateStmt.setString(3, uuid);
+                updateStmt.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-
-            updateStmt.setString(1, fakeNickname);
-            updateStmt.setString(2, realNickname);
-            updateStmt.setString(3, uuid);
-            updateStmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        });
 
         return true;
     }

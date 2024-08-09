@@ -1,9 +1,10 @@
 package hotfies.perfectplayersettings.utils;
 
 import hotfies.perfectplayersettings.PerfectPlayerSettings;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,7 +13,7 @@ import java.sql.Statement;
 public class DatabaseManager {
 
     private final PerfectPlayerSettings plugin;
-    private Connection connection;
+    private HikariDataSource dataSource;
 
     public DatabaseManager(PerfectPlayerSettings plugin) {
         this.plugin = plugin;
@@ -20,19 +21,23 @@ public class DatabaseManager {
 
     public boolean connect() {
         try {
-            String host = plugin.getConfig().getString("database.host");
-            int port = plugin.getConfig().getInt("database.port");
-            String database = plugin.getConfig().getString("database.name");
-            String user = plugin.getConfig().getString("database.user");
-            String password = plugin.getConfig().getString("database.password");
+            // Инициализация HikariCP конфигурации
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl("jdbc:mysql://" + plugin.getConfig().getString("database.host") + ":" + plugin.getConfig().getInt("database.port") + "/" + plugin.getConfig().getString("database.name"));
+            config.setUsername(plugin.getConfig().getString("database.user"));
+            config.setPassword(plugin.getConfig().getString("database.password"));
+            config.setMaximumPoolSize(10); // Настройка размера пула
 
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://" + host + ":" + port + "/" + database, user, password);
+            // Создание пула соединений
+            dataSource = new HikariDataSource(config);
 
-            if (!isTableExists("player_settings")) {
-                createPlayerSettingsTable();
-            } else {
-                addColumnsIfNotExist();
+            // Проверка наличия таблицы и колонок
+            try (Connection connection = getConnection()) {
+                if (!isTableExists("player_settings", connection)) {
+                    createPlayerSettingsTable(connection);
+                } else {
+                    addColumnsIfNotExist(connection);
+                }
             }
 
             return true;
@@ -42,60 +47,73 @@ public class DatabaseManager {
         }
     }
 
-    private boolean isTableExists(String tableName) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            String query = "SHOW TABLES LIKE '" + tableName + "'";
-            return statement.executeQuery(query).next();
+    private boolean isTableExists(String tableName, Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("SHOW TABLES LIKE ?")) {
+            statement.setString(1, tableName);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
         }
     }
 
-    private void createPlayerSettingsTable() throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            String createTableSQL = "CREATE TABLE player_settings (" +
-                    "player_uuid VARCHAR(36) NOT NULL PRIMARY KEY," +
-                    "fly BOOLEAN DEFAULT FALSE," +
-                    "visibility BOOLEAN DEFAULT TRUE," +
-                    "chat BOOLEAN DEFAULT TRUE," +
-                    "lang VARCHAR(10) DEFAULT 'Ru_ru'," +
-                    "tag VARCHAR(20) DEFAULT 'Default'," +
-                    "fake_nickname VARCHAR(10)," +
-                    "real_nickname VARCHAR(16)," +
-                    "color_nick VARCHAR(19) DEFAULT '&7'" +
-                    ")";
-            statement.executeUpdate(createTableSQL);
+    private void createPlayerSettingsTable(Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "CREATE TABLE player_settings (" +
+                        "player_uuid VARCHAR(36) NOT NULL PRIMARY KEY," +
+                        "fly BOOLEAN DEFAULT FALSE," +
+                        "visibility BOOLEAN DEFAULT TRUE," +
+                        "chat BOOLEAN DEFAULT TRUE," +
+                        "lang VARCHAR(10) DEFAULT 'Ru_ru'," +
+                        "tag VARCHAR(20) DEFAULT 'Default'," +
+                        "fake_nickname VARCHAR(10)," +
+                        "real_nickname VARCHAR(16)," +
+                        "color_nick VARCHAR(19) DEFAULT '&7'," +
+                        "get_party_invites BOOLEAN DEFAULT TRUE" + // Новый столбец
+                        ")")) {
+            statement.executeUpdate();
         }
     }
 
-    private void addColumnsIfNotExist() throws SQLException {
+    private void addColumnsIfNotExist(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            String query = "ALTER TABLE player_settings " +
-                    "ADD COLUMN IF NOT EXISTS fake_nickname VARCHAR(10), " +
-                    "ADD COLUMN IF NOT EXISTS real_nickname VARCHAR(16), " +
-                    "ADD COLUMN IF NOT EXISTS color_nick VARCHAR(5) DEFAULT '&7'";
-            statement.executeUpdate(query);
+            if (!isColumnExists("player_settings", "fake_nickname", connection)) {
+                statement.executeUpdate("ALTER TABLE player_settings ADD COLUMN fake_nickname VARCHAR(10)");
+            }
+
+            if (!isColumnExists("player_settings", "real_nickname", connection)) {
+                statement.executeUpdate("ALTER TABLE player_settings ADD COLUMN real_nickname VARCHAR(16)");
+            }
+
+            if (!isColumnExists("player_settings", "color_nick", connection)) {
+                statement.executeUpdate("ALTER TABLE player_settings ADD COLUMN color_nick VARCHAR(5) DEFAULT '&7'");
+            }
+
+            if (!isColumnExists("player_settings", "get_party_invites", connection)) {
+                statement.executeUpdate("ALTER TABLE player_settings ADD COLUMN get_party_invites BOOLEAN DEFAULT TRUE");
+            }
+        }
+    }
+
+    private boolean isColumnExists(String tableName, String columnName, Connection connection) throws SQLException {
+        try (ResultSet resultSet = connection.getMetaData().getColumns(null, null, tableName, columnName)) {
+            return resultSet.next();
         }
     }
 
     public void disconnect() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        if (dataSource != null) {
+            dataSource.close();
         }
     }
 
-    public Connection getConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                connect();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public Connection getConnection() throws SQLException {
+        if (dataSource == null || dataSource.isClosed()) {
+            connect();
         }
-        return connection;
+        return dataSource.getConnection();
     }
+
+    // Методы для работы с настройками игроков
 
     public String getTag(String playerUUID) {
         try (Connection connection = getConnection();
@@ -190,6 +208,31 @@ public class DatabaseManager {
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement("UPDATE player_settings SET color_nick = ? WHERE player_uuid = ?")) {
             statement.setString(1, colorNick);
+            statement.setString(2, playerUUID);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean getPartyInvites(String playerUUID) {
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT get_party_invites FROM player_settings WHERE player_uuid = ?")) {
+            statement.setString(1, playerUUID);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getBoolean("get_party_invites");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return true; // По умолчанию возвращаем true
+    }
+
+    public void setPartyInvites(String playerUUID, boolean getPartyInvites) {
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement("UPDATE player_settings SET get_party_invites = ? WHERE player_uuid = ?")) {
+            statement.setBoolean(1, getPartyInvites);
             statement.setString(2, playerUUID);
             statement.executeUpdate();
         } catch (SQLException e) {

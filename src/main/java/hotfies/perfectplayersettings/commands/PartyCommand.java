@@ -14,13 +14,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class VisibilityCommand implements CommandExecutor {
+public class PartyCommand implements CommandExecutor {
 
     private final PerfectPlayerSettings plugin;
     private final DatabaseManager databaseManager;
     private final MessageManager messageManager;
 
-    public VisibilityCommand(PerfectPlayerSettings plugin) {
+    public PartyCommand(PerfectPlayerSettings plugin) {
         this.plugin = plugin;
         this.databaseManager = plugin.getDatabaseManager();
         this.messageManager = plugin.getMessageManager();
@@ -28,7 +28,7 @@ public class VisibilityCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!plugin.getConfig().getBoolean("commands.pfvisibility", true)) {
+        if (!plugin.getConfig().getBoolean("commands.pfparty", true)) {
             return true;
         }
 
@@ -39,39 +39,34 @@ public class VisibilityCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
+        // Асинхронное выполнение
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try (Connection connection = databaseManager.getConnection();
-                 PreparedStatement statement = connection.prepareStatement("SELECT visibility FROM player_settings WHERE player_uuid = ?")) {
+                 PreparedStatement statement = connection.prepareStatement("SELECT get_party_invites FROM player_settings WHERE player_uuid = ?")) {
                 statement.setString(1, player.getUniqueId().toString());
                 ResultSet resultSet = statement.executeQuery();
 
-                boolean visibilityEnabled = true;
+                boolean getPartyInvites = true;
                 if (resultSet.next()) {
-                    visibilityEnabled = resultSet.getBoolean("visibility");
+                    getPartyInvites = resultSet.getBoolean("get_party_invites");
                 }
 
-                visibilityEnabled = !visibilityEnabled;
+                // Переключение значения
+                getPartyInvites = !getPartyInvites;
 
                 try (PreparedStatement updateStatement = connection.prepareStatement(
-                        "INSERT INTO player_settings (player_uuid, visibility) VALUES (?, ?) ON DUPLICATE KEY UPDATE visibility = ?")) {
-                    updateStatement.setString(1, player.getUniqueId().toString());
-                    updateStatement.setBoolean(2, visibilityEnabled);
-                    updateStatement.setBoolean(3, visibilityEnabled);
+                        "UPDATE player_settings SET get_party_invites = ? WHERE player_uuid = ?")) {
+                    updateStatement.setBoolean(1, getPartyInvites);
+                    updateStatement.setString(2, player.getUniqueId().toString());
                     updateStatement.executeUpdate();
                 }
 
-                boolean finalVisibilityEnabled = visibilityEnabled;
+                boolean finalGetPartyInvites = getPartyInvites;
                 Bukkit.getScheduler().runTask(plugin, () -> {
-                    if (finalVisibilityEnabled) {
-                        for (Player p : Bukkit.getOnlinePlayers()) {
-                            player.showPlayer(plugin, p);
-                        }
-                        player.sendMessage(messageManager.getFormattedMessage(player, "VisibilityEnabled", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
+                    if (finalGetPartyInvites) {
+                        player.sendMessage(messageManager.getFormattedMessage(player, "PartyInvitesEnabled", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
                     } else {
-                        for (Player p : Bukkit.getOnlinePlayers()) {
-                            player.hidePlayer(plugin, p);
-                        }
-                        player.sendMessage(messageManager.getFormattedMessage(player, "VisibilityDisabled", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
+                        player.sendMessage(messageManager.getFormattedMessage(player, "PartyInvitesDisabled", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
                     }
                 });
 

@@ -4,6 +4,7 @@ import hotfies.perfectplayersettings.PerfectPlayerSettings;
 import hotfies.perfectplayersettings.utils.DatabaseManager;
 import hotfies.perfectplayersettings.utils.MessageManager;
 import hotfies.perfectplayersettings.utils.ConfigManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,7 +27,7 @@ public class TagCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!plugin.getConfig().getBoolean("commands.pstag", true)) {
+        if (!plugin.getConfig().getBoolean("commands.pftag", true)) {
             return true;
         }
 
@@ -42,21 +43,25 @@ public class TagCommand implements CommandExecutor {
         Player player = (Player) sender;
         String selectedTag = args[0].toLowerCase();
 
-        if (!player.hasPermission("perfectps.tag." + selectedTag)) {
-            player.sendMessage(messageManager.getFormattedMessage(player, "Permissions", "%ps_prefix%", messageManager.getMessage(player, "Prefix")));
+        if (!player.hasPermission("perfectpf.tag." + selectedTag)) {
+            player.sendMessage(messageManager.getFormattedMessage(player, "Permissions", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
             return true;
         }
 
         String tagValue = configManager.getTag(selectedTag);
         if (tagValue == null) {
-            player.sendMessage(messageManager.getFormattedMessage(player, "TagNotExist", "%ps_prefix%", messageManager.getMessage(player, "Prefix")));
+            player.sendMessage(messageManager.getFormattedMessage(player, "TagNotExist", "%pf_prefix%", messageManager.getMessage(player, "Prefix")));
             return true;
         }
 
-        // Форматируем тег для отображения в чате
         String formattedTag = ChatColor.translateAlternateColorCodes('&', tagValue);
-        databaseManager.setTag(player.getUniqueId().toString(), selectedTag);
-        player.sendMessage(messageManager.getFormattedMessage(player, "TagSet", "%ps_prefix%", messageManager.getMessage(player, "Prefix"), "%ps_tag%", formattedTag));
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            databaseManager.setTag(player.getUniqueId().toString(), selectedTag);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                player.sendMessage(messageManager.getFormattedMessage(player, "TagSet", "%pf_prefix%", messageManager.getMessage(player, "Prefix"), "%pf_tag%", formattedTag));
+            });
+        });
 
         return true;
     }
